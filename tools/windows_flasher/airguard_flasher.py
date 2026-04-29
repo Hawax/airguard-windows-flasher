@@ -93,7 +93,6 @@ class AirGuardFlasher(tk.Tk):
         self.port_var = tk.StringVar()
         self.version_var = tk.StringVar(value="nie sprawdzono")
         self.status_var = tk.StringVar(value="Gotowe")
-        self.base_url_var = tk.StringVar(value=BASE_URL)
         self.erase_var = tk.BooleanVar(value=False)
         self.baud_var = tk.StringVar(value="460800")
 
@@ -115,22 +114,19 @@ class AirGuardFlasher(tk.Tk):
         cfg.pack(fill="x", pady=(12, 8))
         cfg.columnconfigure(1, weight=1)
 
-        ttk.Label(cfg, text="Serwer firmware:").grid(row=0, column=0, sticky="w", padx=(0, 8), pady=4)
-        ttk.Entry(cfg, textvariable=self.base_url_var).grid(row=0, column=1, columnspan=4, sticky="ew", pady=4)
+        ttk.Label(cfg, text="Wersja firmware:").grid(row=0, column=0, sticky="w", padx=(0, 8), pady=4)
+        ttk.Label(cfg, textvariable=self.version_var, font=("Segoe UI", 10, "bold")).grid(row=0, column=1, sticky="w", pady=4)
+        ttk.Button(cfg, text="Sprawdź", command=self.check_latest_async).grid(row=0, column=2, padx=4, pady=4)
 
-        ttk.Label(cfg, text="Wersja na serwerze:").grid(row=1, column=0, sticky="w", padx=(0, 8), pady=4)
-        ttk.Label(cfg, textvariable=self.version_var, font=("Segoe UI", 10, "bold")).grid(row=1, column=1, sticky="w", pady=4)
-        ttk.Button(cfg, text="Sprawdź", command=self.check_latest_async).grid(row=1, column=2, padx=4, pady=4)
-
-        ttk.Label(cfg, text="Port COM:").grid(row=2, column=0, sticky="w", padx=(0, 8), pady=4)
+        ttk.Label(cfg, text="Port COM:").grid(row=1, column=0, sticky="w", padx=(0, 8), pady=4)
         self.port_combo = ttk.Combobox(cfg, textvariable=self.port_var, state="readonly", width=28)
-        self.port_combo.grid(row=2, column=1, sticky="w", pady=4)
-        ttk.Button(cfg, text="Odśwież porty", command=self.refresh_ports).grid(row=2, column=2, padx=4, pady=4)
-        ttk.Button(cfg, text="Menedżer urządzeń", command=self.open_device_manager).grid(row=2, column=3, padx=4, pady=4)
+        self.port_combo.grid(row=1, column=1, sticky="w", pady=4)
+        ttk.Button(cfg, text="Odśwież porty", command=self.refresh_ports).grid(row=1, column=2, padx=4, pady=4)
+        ttk.Button(cfg, text="Menedżer urządzeń", command=self.open_device_manager).grid(row=1, column=3, padx=4, pady=4)
 
-        ttk.Label(cfg, text="Prędkość:").grid(row=3, column=0, sticky="w", padx=(0, 8), pady=4)
-        ttk.Combobox(cfg, textvariable=self.baud_var, values=("460800", "230400", "115200"), width=12, state="readonly").grid(row=3, column=1, sticky="w", pady=4)
-        ttk.Checkbutton(cfg, text="Wyczyść flash przed wgrywaniem (dla nowych/problemowych urządzeń)", variable=self.erase_var).grid(row=3, column=2, columnspan=3, sticky="w", pady=4)
+        ttk.Label(cfg, text="Prędkość:").grid(row=2, column=0, sticky="w", padx=(0, 8), pady=4)
+        ttk.Combobox(cfg, textvariable=self.baud_var, values=("460800", "230400", "115200"), width=12, state="readonly").grid(row=2, column=1, sticky="w", pady=4)
+        ttk.Checkbutton(cfg, text="Wyczyść flash przed wgrywaniem (dla nowych/problemowych urządzeń)", variable=self.erase_var).grid(row=2, column=2, columnspan=3, sticky="w", pady=4)
 
         actions = ttk.Frame(root)
         actions.pack(fill="x", pady=(4, 8))
@@ -200,7 +196,8 @@ class AirGuardFlasher(tk.Tk):
         self.worker.start()
 
     def base_url(self) -> str:
-        return self.base_url_var.get().strip().rstrip("/") + "/"
+        # Hidden from end users; can still be overridden for testing/builds via AIRGUARD_BASE_URL.
+        return BASE_URL
 
     def refresh_ports(self) -> None:
         self.ports = []
