@@ -1,0 +1,56 @@
+name: Build Windows Flasher
+
+"on":
+  workflow_dispatch:
+    inputs:
+      firmware_url:
+        description: "Firmware base URL baked as default in the exe"
+        required: false
+        default: "http://57.128.218.234/kq8bV4oF9kqouQij4Q5F/air-guard-co2/"
+  push:
+    paths:
+      - "tools/windows_flasher/**"
+      - ".github/workflows/build-windows-flasher.yml"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tools/windows_flasher
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build exe
+        shell: pwsh
+        env:
+          AIRGUARD_BASE_URL: ${{ github.event.inputs.firmware_url || 'http://57.128.218.234/kq8bV4oF9kqouQij4Q5F/air-guard-co2/' }}
+        run: |
+          pyinstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --windowed `
+            --name AirGuardFlasher `
+            --collect-all esptool `
+            --collect-all serial `
+            airguard_flasher.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AirGuardFlasher-windows-exe
+          path: tools/windows_flasher/dist/AirGuardFlasher.exe
+          if-no-files-found: error
